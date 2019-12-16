@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import re
+import uuid
 from collections import namedtuple
 from copy import deepcopy
 from datetime import datetime
@@ -584,6 +585,10 @@ def convert_search_filter_to_snuba_query(search_filter):
                 )
             )
         return [name, search_filter.operator, internal_value]
+    elif name == "trace":
+        if search_filter.value.raw_value:
+            return [name, search_filter.operator, uuid.UUID(search_filter.value.raw_value)]
+        return [name, search_filter.operator, search_filter.value.raw_value]
     else:
         value = (
             int(to_timestamp(value)) * 1000
