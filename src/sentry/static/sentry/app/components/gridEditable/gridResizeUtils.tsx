@@ -1,9 +1,9 @@
 // import {GridColumn} from './types';
 
-export const COL_WIDTH_MIN = 50;
+export const COL_WIDTH_MIN = 100;
 
 // Default width if it wasn't specified
-export const COL_WIDTH_DEFAULT = '300px';
+export const COL_WIDTH_DEFAULT = 300;
 export const COL_WIDTH_NUMBER = COL_WIDTH_MIN;
 export const COL_WIDTH_STRING = 250;
 export const COL_WIDTH_STRING_LONG = 400;

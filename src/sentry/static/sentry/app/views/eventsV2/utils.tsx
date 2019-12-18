@@ -54,10 +54,20 @@ function explodeFieldString(field: string): {aggregation: string; field: string}
 
 export function explodeField(
   field: FieldType
-): {aggregation: string; field: string; fieldname: string} {
+): {
+  aggregation: string;
+  field: string;
+  fieldname: string;
+  width: number;
+} {
   const results = explodeFieldString(field.field);
 
-  return {aggregation: results.aggregation, field: results.field, fieldname: field.title};
+  return {
+    aggregation: results.aggregation,
+    field: results.field,
+    fieldname: field.title,
+    width: field.width,
+  };
 }
 
 /**
@@ -236,7 +246,7 @@ const TEMPLATE_TABLE_COLUMN: TableColumn<React.ReactText> = {
   name: '',
   aggregation: '',
   field: '',
-  eventViewField: Object.freeze({field: '', title: '', width: ''}),
+  eventViewField: Object.freeze({field: '', title: '', width: 0}),
   isDragging: false,
 
   type: 'never',
@@ -244,16 +254,11 @@ const TEMPLATE_TABLE_COLUMN: TableColumn<React.ReactText> = {
   isPrimary: false,
 };
 
-export function decodeColumnOrder(props: {
-  fieldnames: string[];
-  field: string[];
-  fields: Readonly<FieldType[]>;
-}): TableColumn<React.ReactText>[] {
-  const {fieldnames, field, fields} = props;
-
-  return field.map((f: string, index: number) => {
-    const col = {aggregationField: f, name: fieldnames[index]};
-
+export function decodeColumnOrder(
+  fields: Readonly<FieldType[]>
+): TableColumn<React.ReactText>[] {
+  return fields.map((f: FieldType) => {
+    const col = {aggregationField: f.field, name: f.title, width: f.width};
     const column: TableColumn<React.ReactText> = {...TEMPLATE_TABLE_COLUMN};
 
     // "field" will be split into ["field"]
@@ -272,18 +277,13 @@ export function decodeColumnOrder(props: {
     column.key = col.aggregationField;
     column.name = col.name;
     column.type = (FIELDS[column.field] || 'never') as ColumnValueType;
-    // column.width =
+    column.width = col.width;
 
     column.isSortable = AGGREGATIONS[column.aggregation]
       ? AGGREGATIONS[column.aggregation].isSortable
       : false;
     column.isPrimary = column.field === 'title';
-
-    column.eventViewField = {
-      title: fields[index].title,
-      field: fields[index].field,
-      width: '1fr',
-    };
+    column.eventViewField = f;
 
     return column;
   });

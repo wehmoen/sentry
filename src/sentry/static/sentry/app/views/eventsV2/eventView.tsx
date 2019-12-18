@@ -52,7 +52,7 @@ const reverseSort = (sort: Sort): Sort => {
 export type Field = {
   field: string;
   title: string;
-  width: string;
+  width: number;
 };
 
 const isSortEqualToField = (
@@ -115,7 +115,6 @@ const generateFieldAsString = (props: {aggregation: string; field: string}): str
 
 const decodeFields = (location: Location): Array<Field> => {
   const {query} = location;
-
   if (!query || !query.field) {
     return [];
   }
@@ -144,7 +143,7 @@ const decodeFields = (location: Location): Array<Field> => {
       title = fieldnames[i];
     }
 
-    const width = widths.length > i ? widths[i] : COL_WIDTH_DEFAULT;
+    const width = widths.length > i ? Number(widths[i]) : COL_WIDTH_DEFAULT;
     parsed.push({field, title, width});
   });
 
@@ -387,7 +386,8 @@ class EventView {
   static fromSavedQuery(saved: NewQuery | SavedQuery): EventView {
     const fields = saved.fields.map((field, i) => {
       const title = saved.fieldnames && saved.fieldnames[i] ? saved.fieldnames[i] : field;
-      const width = saved.widths && saved.widths[i] ? saved.widths[i] : COL_WIDTH_DEFAULT;
+      const width =
+        saved.widths && saved.widths[i] ? Number(saved.widths[i]) : COL_WIDTH_DEFAULT;
 
       return {field, title, width};
     });
@@ -479,7 +479,7 @@ class EventView {
       name: this.name || '',
       fields: this.getFields(),
       fieldnames: this.getFieldNames(),
-      widths: this.getWidths(),
+      widths: this.getWidths().map(w => String(w)),
       orderby,
       tags: this.tags,
       query: this.query || '',
@@ -566,7 +566,7 @@ class EventView {
     return this.fields.map(field => field.title);
   }
 
-  getWidths(): string[] {
+  getWidths(): number[] {
     return this.fields.map(field => field.width);
   }
 
@@ -588,11 +588,7 @@ class EventView {
   }
 
   getColumns(): TableColumn<React.ReactText>[] {
-    return decodeColumnOrder({
-      field: this.getFields(),
-      fieldnames: this.getFieldNames(),
-      fields: this.fields,
-    });
+    return decodeColumnOrder(this.fields);
   }
 
   clone(): EventView {
@@ -659,7 +655,7 @@ class EventView {
       aggregation: string;
       field: string;
       fieldname: string;
-      width: string;
+      width: number;
     },
     tableMeta: MetaType | undefined
   ): EventView {
@@ -670,8 +666,9 @@ class EventView {
 
     const updateField = columnToBeUpdated.field !== fieldAsString;
     const updateFieldName = columnToBeUpdated.title !== fieldname;
+    const updateWidth = columnToBeUpdated.width !== width;
 
-    if (!updateField && !updateFieldName) {
+    if (!updateField && !updateFieldName && !updateWidth) {
       return this;
     }
 

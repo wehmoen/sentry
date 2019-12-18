@@ -145,7 +145,6 @@ class Table extends React.PureComponent<TableProps, TableState> {
   render() {
     const {eventView} = this.props;
     const {pageLinks, tableData, tagKeys, isLoading, error} = this.state;
-    console.log('hella render', eventView.fields);
 
     return (
       <Container>

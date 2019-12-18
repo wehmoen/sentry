@@ -121,7 +121,7 @@ class TableView extends React.Component<TableViewProps> {
       aggregation: String(nextColumn.aggregation),
       field: String(nextColumn.field),
       fieldname: String(nextColumn.name),
-      width: String(nextColumn.width),
+      width: Number(nextColumn.width) || 0,
     };
 
     const tableMeta = (tableData && tableData.meta) || undefined;
@@ -136,6 +136,7 @@ class TableView extends React.Component<TableViewProps> {
       const aggregationChanged = prevField.aggregation !== nextField.aggregation;
       const fieldChanged = prevField.field !== nextField.field;
       const fieldnameChanged = prevField.fieldname !== nextField.fieldname;
+      const widthChanged = prevField.width !== nextField.width;
 
       if (aggregationChanged) {
         changed.push('aggregate');
@@ -149,7 +150,10 @@ class TableView extends React.Component<TableViewProps> {
         changed.push('fieldname');
       }
 
-      // metrics
+      if (widthChanged) {
+        changed.push('width');
+      }
+
       trackAnalyticsEvent({
         eventKey: 'discover_v2.update_column',
         eventName: 'Discoverv2: A column was updated',
@@ -370,11 +374,6 @@ class TableView extends React.Component<TableViewProps> {
     }
   };
 
-  onResizeColumn = (columnIndex: number, nextColumn: TableColumn<keyof TableDataRow>) => {
-    console.warn('onResizeColumn', columnIndex, nextColumn);
-    this._updateColumn(columnIndex, nextColumn);
-  };
-
   render() {
     const {organization, isLoading, error, tableData, tagKeys, eventView} = this.props;
 
@@ -425,6 +424,7 @@ class TableView extends React.Component<TableViewProps> {
               grid={{
                 renderHeaderCell: this._renderGridHeaderCell as any,
                 renderBodyCell: this._renderGridBodyCell as any,
+                onResizeColumn: this._updateColumn as any,
               }}
               modalEditColumn={{
                 renderBodyWithForm: renderModalBodyWithForm as any,
@@ -454,7 +454,6 @@ const ExpandAggregateRow = (props: {
   tableMeta: MetaType;
 }) => {
   const {children, column, dataRow, eventView, location, tableMeta} = props;
-
   const {eventViewField} = column;
 
   const exploded = explodeField(eventViewField);
@@ -485,7 +484,6 @@ const ExpandAggregateRow = (props: {
       }
 
       // add this field to the search conditions
-
       const dataKey = getAggregateAlias(field.field);
       const value = dataRow[dataKey];
 
@@ -500,6 +498,7 @@ const ExpandAggregateRow = (props: {
           aggregation: '',
           field: exploded.field,
           fieldname: exploded.field,
+          width: exploded.width,
         };
 
         return currentEventView.withUpdatedColumn(

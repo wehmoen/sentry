@@ -150,6 +150,10 @@ class GridEditable<
     isResizeHover: -1,
   };
 
+  componentDidUpdate() {
+    this.setGridTemplateColumns(this.props.columnOrder);
+  }
+
   componentWillUnmount() {
     this.clearWindowLifecycleEvents();
   }
@@ -195,7 +199,21 @@ class GridEditable<
     this.resizeWindowLifecycleEvents.mouseup.push(this.onResizeMouseUp);
   };
 
-  onResizeMouseUp = () => {
+  onResizeMouseUp = (e: MouseEvent) => {
+    const metadata = this.resizeMetadata;
+    const onResizeColumn = this.props.grid.onResizeColumn;
+    if (!metadata || !onResizeColumn) {
+      return;
+    }
+
+    const {columnOrder} = this.props;
+    const widthChange = e.clientX - metadata.cursorX;
+
+    onResizeColumn(metadata.columnIndex, {
+      ...columnOrder[metadata.columnIndex],
+      width: metadata.columnOffsetWidth + widthChange,
+    });
+
     this.resizeMetadata = undefined;
     this.setState({isResizeActive: -1});
     this.clearWindowLifecycleEvents();
@@ -203,7 +221,6 @@ class GridEditable<
 
   onResizeMouseMove = (e: MouseEvent) => {
     if (!this.resizeMetadata) {
-      console.warn('failed to get resizeMeta');
       return;
     }
 
@@ -263,9 +280,6 @@ class GridEditable<
     });
   };
 
-  /**
-   *
-   */
   resizeGridColumn = (e: MouseEvent, metadata: ColResizeMetadata) => {
     const grid = this.refGrid.current;
     if (!grid) {
@@ -273,15 +287,41 @@ class GridEditable<
     }
 
     const widthChange = e.clientX - metadata.cursorX;
-    const templateCol = this.props.columnOrder.map(c =>
-      c.width ? c.width : COL_WIDTH_DEFAULT
+
+    const nextColumnOrder = [...this.props.columnOrder];
+    nextColumnOrder[metadata.columnIndex] = {
+      ...nextColumnOrder[metadata.columnIndex],
+      width: metadata.columnOffsetWidth + widthChange,
+    };
+
+    this.setGridTemplateColumns(
+      this.props.columnOrder,
+      metadata.columnIndex,
+      metadata.columnOffsetWidth + e.clientX - metadata.cursorX
     );
-
-    templateCol[metadata.columnIndex] = `${metadata.columnOffsetWidth + widthChange}px`;
-
-    // Set the CSS for Grid Column
-    grid.style.gridTemplateColumns = templateCol.join(' ');
   };
+
+  /**
+   * Set the CSS for Grid Column
+   */
+  setGridTemplateColumns(
+    columnOrder: GridColumnOrder[],
+    columnIndex: number = -1,
+    columnWidth: number = 0
+  ) {
+    const grid = this.refGrid.current;
+    if (!grid) {
+      return;
+    }
+
+    const columnWidths = columnOrder.map((c, i) => {
+      const width = i !== columnIndex ? c.width : columnWidth;
+      return `${Math.max(COL_WIDTH_MIN, Number(width) || COL_WIDTH_DEFAULT)}px`;
+    });
+
+    grid.style.gridTemplateColumns = columnWidths.join(' ');
+    console.log(grid.style.gridTemplateColumns);
+  }
 
   renderHeaderButton = () => {
     if (!this.props.isEditable) {

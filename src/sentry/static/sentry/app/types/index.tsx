@@ -666,7 +666,7 @@ export type NewQuery = {
   projects: Readonly<number[]>;
   fields: Readonly<string[]>;
   fieldnames: Readonly<string[]>;
-  widths: Readonly<string[]>;
+  widths?: Readonly<string[]>;
   query: string;
   orderby?: string;
   range?: string;
