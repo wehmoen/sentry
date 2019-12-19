@@ -1,9 +1,14 @@
-import React from 'react';
 import styled, {css} from 'react-emotion';
-import {Flex} from 'grid-emotion';
 import space from 'app/styles/space';
 
-const inlineStyle = p =>
+type Props = {
+  stacked?: boolean;
+  inline?: boolean;
+  hasControlState?: boolean;
+  highlighted?: boolean;
+};
+
+const inlineStyle = (p: Props) =>
   p.inline
     ? css`
         align-items: center;
@@ -13,7 +18,7 @@ const inlineStyle = p =>
         align-items: stretch;
       `;
 
-const highlightedStyle = p =>
+const highlightedStyle = (p: Props) =>
   p.highlighted
     ? css`
         position: relative;
@@ -32,14 +37,14 @@ const highlightedStyle = p =>
       `
     : '';
 
-const borderStyle = p =>
+const borderStyle = (p: Props) =>
   p.stacked
     ? ''
     : css`
         border-bottom: 1px solid ${p.theme.borderLight};
       `;
 
-const getPadding = p =>
+const getPadding = (p: Props) =>
   p.stacked && !p.inline
     ? css`
         padding: 0 ${p.hasControlState ? 0 : space(2)} ${space(2)} 0;
@@ -48,13 +53,12 @@ const getPadding = p =>
         padding: ${space(2)} ${p.hasControlState ? 0 : space(2)} ${space(2)} ${space(2)};
       `;
 
+// shouldForwardProp: prop =>
+// !['highlighted', 'inline', 'stacked', 'hasControlState', 'p'].includes(prop),
 /**
  * `hasControlState` - adds padding to right if this is false
  */
-const FieldWrapper = styled(p => <Flex {...p} />, {
-  shouldForwardProp: prop =>
-    !['highlighted', 'inline', 'stacked', 'hasControlState', 'p'].includes(prop),
-})`
+const FieldWrapper = styled('div')<Props>`
   ${getPadding};
   transition: background 0.15s;
 
@@ -65,9 +69,11 @@ const FieldWrapper = styled(p => <Flex {...p} />, {
   /* Better padding with form inside of a modal */
   ${p =>
     !p.hasControlState
-      ? `.modal-content & {
-      padding-right: 0;
-    }`
+      ? css`
+          .modal-content & {
+            padding-right: 0;
+          }
+        `
       : ''};
 
   &:last-child {
