@@ -18,32 +18,6 @@ const inlineStyle = (p: Props) =>
         align-items: stretch;
       `;
 
-const highlightedStyle = (p: Props) =>
-  p.highlighted
-    ? css`
-        position: relative;
-
-        &:after {
-          content: '';
-          display: block;
-          position: absolute;
-          top: -1px;
-          left: -1px;
-          right: -1px;
-          bottom: -1px;
-          border: 1px solid ${p.theme.purple};
-          pointer-events: none;
-        }
-      `
-    : '';
-
-const borderStyle = (p: Props) =>
-  p.stacked
-    ? ''
-    : css`
-        border-bottom: 1px solid ${p.theme.borderLight};
-      `;
-
 const getPadding = (p: Props) =>
   p.stacked && !p.inline
     ? css`
@@ -57,22 +31,43 @@ const getPadding = (p: Props) =>
  * `hasControlState` - adds padding to right if this is false
  */
 const FieldWrapper = styled('div')<Props>`
-  ${getPadding};
+  ${getPadding}
+  ${inlineStyle}
   transition: background 0.15s;
 
-  ${borderStyle};
-  ${inlineStyle};
-  ${highlightedStyle};
+  ${p =>
+    !p.stacked &&
+    css`
+      border-bottom: 1px solid ${p.theme.borderLight};
+    `}
+
+  ${p =>
+    p.highlighted &&
+    css`
+      position: relative;
+
+      &:after {
+        content: '';
+        display: block;
+        position: absolute;
+        top: -1px;
+        left: -1px;
+        right: -1px;
+        bottom: -1px;
+        border: 1px solid ${p.theme.purple};
+        pointer-events: none;
+      }
+    `}
+
 
   /* Better padding with form inside of a modal */
   ${p =>
-    !p.hasControlState
-      ? css`
-          .modal-content & {
-            padding-right: 0;
-          }
-        `
-      : ''};
+    !p.hasControlState &&
+    css`
+      .modal-content & {
+        padding-right: 0;
+      }
+    `}
 
   &:last-child {
     border-bottom: none;
