@@ -53,8 +53,6 @@ const getPadding = (p: Props) =>
         padding: ${space(2)} ${p.hasControlState ? 0 : space(2)} ${space(2)} ${space(2)};
       `;
 
-// shouldForwardProp: prop =>
-// !['highlighted', 'inline', 'stacked', 'hasControlState', 'p'].includes(prop),
 /**
  * `hasControlState` - adds padding to right if this is false
  */
